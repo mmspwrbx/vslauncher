@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src 'self' https://api.vintagestory.at https://mods.vintagestory.at https://auth3.vintagestory.at; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://mods.vintagestory.at cachemodimg: icons: https://moddbcdn.vintagestory.at; frame-src 'self' https://www.youtube.com https://www.vintagestory.at/"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EchoesLauncher</title>
+  </head>
+
+  <body class="font-sans text-zinc-200 bg-zinc-800">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
