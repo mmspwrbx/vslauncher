@@ -19,7 +19,7 @@ import PopupDialogPanel from "@renderer/components/ui/PopupDialogPanel"
 import InstallModPopup from "@renderer/features/mods/components/InstallModPopup"
 import ImportModpackPopup from "@renderer/features/mods/components/ImportModpackPopup"
 import { LinkButton, NormalButton } from "@renderer/components/ui/Buttons"
-import { FormButton } from "@renderer/components/ui/FormComponents"
+import { FormButton, FormLinkButton } from "@renderer/components/ui/FormComponents"
 import { ThinSeparator } from "@renderer/components/ui/ListSeparators"
 import { StickyMenuWrapper, StickyMenuGroupWrapper, StickyMenuGroup, StickyMenuBreadcrumbs, GoBackButton, GoToTopButton, ReloadButton } from "@renderer/components/ui/StickyMenu"
 
@@ -81,7 +81,7 @@ function ListMods(): JSX.Element {
 
     if (!installation) return addNotification(t("features.installations.noInstallationFound"), "error")
 
-    if (installation._backuping || installation._restoringBackup) return addNotification(t("features.mods.cantDeleteWhileinUse"), "error")
+    if (installation._backuping || installation._restoringBackup || installation._applyingModPreset) return addNotification(t("features.mods.cantDeleteWhileinUse"), "error")
 
     try {
       const deleted = await window.api.pathsManager.deletePath(modToDelete.path)
@@ -100,7 +100,7 @@ function ListMods(): JSX.Element {
   async function UpdateModsHandler(): Promise<void> {
     if (!installation) return addNotification(t("features.installations.noInstallationFound"), "error")
 
-    if (installation._backuping || installation._restoringBackup) return addNotification(t("features.mods.cantUpdateWhileinUse"), "error")
+    if (installation._backuping || installation._restoringBackup || installation._applyingModPreset) return addNotification(t("features.mods.cantUpdateWhileinUse"), "error")
 
     const collected: ModChangeSummaryEntry[] = []
 
@@ -179,6 +179,9 @@ function ListMods(): JSX.Element {
           {installation && (
             <StickyMenuGroupWrapper type="centered">
               <StickyMenuGroup>
+                <FormLinkButton title={t("features.mods.presets.title")} to={`/installations/mods/${installation.id}/presets`} className="p-1 h-8">
+                  {t("features.mods.presets.title")}
+                </FormLinkButton>
                 <FormButton title={t("features.mods.updateAll")} className="p-1 w-fit h-8" onClick={UpdateModsHandler}>
                   <PiArrowClockwiseDuotone className="text-xl" />
                   <p>{t("features.mods.updateAllButton")}</p>

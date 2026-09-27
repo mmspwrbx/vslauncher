@@ -59,11 +59,14 @@ declare global {
     totalTimePlayed: number
     mesaGlThread: boolean
     envVars: string
+    modPresets?: ModPresetType[]
+    activeModPresetId?: string | null
     _modsCount?: number
     _playing?: boolean
     _backuping?: boolean
     _restoringBackup?: boolean
     _updatingMods?: boolean
+    _applyingModPreset?: boolean
   }
 
   type ConfigType = BasicConfigType & {
@@ -91,6 +94,22 @@ declare global {
   }
 
   type ErrorInstalledModType = { zipname: string; path: string }
+
+  type ModPresetEntryType = {
+    id: string
+    name: string
+    modid: string
+    version: string
+    source: "local" | "catalog"
+    fileName?: string
+    url?: string
+  }
+
+  type ModPresetType = {
+    id: string
+    name: string
+    mods: ModPresetEntryType[]
+  }
 
   type DownloadableModOnListType = {
     modid: number

@@ -47,7 +47,7 @@ export function useQueryMods(): ({
     try {
       const filters: string[] = []
 
-      if (textFilter && textFilter.length > 1) filters.push(`text=${textFilter}`)
+      if (textFilter && textFilter.length > 1) filters.push(`text=${encodeURIComponent(textFilter)}`)
       if (authorFilter && authorFilter.name.length > 1) filters.push(`author=${authorFilter.userid}`)
       if (versionsFilter && versionsFilter.length > 0) versionsFilter.map((version) => filters.push(`gameversions[]=${version.tagid}`))
       if (tagsFilter && tagsFilter.length > 0) tagsFilter.map((tag) => filters.push(`tagids[]=${tag.tagid}`))

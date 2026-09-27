@@ -1,6 +1,7 @@
 import "./handlers/configHandlers"
 import "./handlers/gameHandlers"
 import "./handlers/modsHandlers"
+import "./handlers/modPresetsHandlers"
 import "./handlers/pathsHandlers"
 import "./handlers/utilsHandlers"
 import "./handlers/netHandlers"

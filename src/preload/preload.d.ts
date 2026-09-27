@@ -28,6 +28,9 @@ declare global {
       getInstalledMods: (path: string) => Promise<{ mods: InstalledModType[]; errors: ErrorInstalledModType[] }>
       exportModpack: (manifest: ModpackManifestType) => Promise<{ success: boolean; path?: string }>
       importModpack: () => Promise<{ success: boolean; manifest?: ModpackManifestType; error?: string }>
+      snapshotPresetMods: (path: string, installationId: string, presetId: string, mods: InstalledModType[]) => Promise<ModPresetEntryType[]>
+      applyModPreset: (path: string, installationId: string, preset: ModPresetType) => Promise<{ success: boolean; error?: string }>
+      deleteModPreset: (installationId: string, presetId: string) => Promise<boolean>
     }
     pathsManager: {
       getCurrentUserDataPath: () => Promise<string>

@@ -32,6 +32,11 @@ export function useMakeInstallationBackup(): (installationId: string) => Promise
       return false
     }
 
+    if (installation._applyingModPreset) {
+      addNotification(t("features.mods.presets.inUse"), "error")
+      return false
+    }
+
     if (installation._playing) {
       addNotification(t("features.backups.backupWhilePlaying"), "error")
       return false

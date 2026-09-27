@@ -79,7 +79,7 @@ function EditInslallation(): JSX.Element {
   const handleEditInstallation = async (): Promise<void> => {
     if (!installation) return addNotification(t("features.installations.noInstallationFound"), "error")
     if (installation._backuping) return addNotification(t("features.backups.backupInProgress"), "error")
-    if (installation._playing) return addNotification(t("features.installations.editWhilePlaying"), "error")
+    if (installation._playing || installation._applyingModPreset) return addNotification(t("features.installations.editWhilePlaying"), "error")
     if (installation._restoringBackup) return addNotification(t("features.backups.restoreInProgress"), "error")
 
     if (!id || !name || !version || !backupsLimit || backupsAuto === undefined) return addNotification(t("notifications.body.missingFields"), "error")

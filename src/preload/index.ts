@@ -28,7 +28,12 @@ const api: BridgeAPI = {
   modsManager: {
     getInstalledMods: (path: string): Promise<{ mods: InstalledModType[]; errors: ErrorInstalledModType[] }> => ipcRenderer.invoke(IPC_CHANNELS.MODS_MANAGER.GET_INSTALLED_MODS, path),
     exportModpack: (manifest: ModpackManifestType): Promise<{ success: boolean; path?: string }> => ipcRenderer.invoke(IPC_CHANNELS.MODS_MANAGER.EXPORT_MODPACK, manifest),
-    importModpack: (): Promise<{ success: boolean; manifest?: ModpackManifestType; error?: string }> => ipcRenderer.invoke(IPC_CHANNELS.MODS_MANAGER.IMPORT_MODPACK)
+    importModpack: (): Promise<{ success: boolean; manifest?: ModpackManifestType; error?: string }> => ipcRenderer.invoke(IPC_CHANNELS.MODS_MANAGER.IMPORT_MODPACK),
+    snapshotPresetMods: (path: string, installationId: string, presetId: string, mods: InstalledModType[]): Promise<ModPresetEntryType[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.MODS_MANAGER.SNAPSHOT_PRESET_MODS, path, installationId, presetId, mods),
+    applyModPreset: (path: string, installationId: string, preset: ModPresetType): Promise<{ success: boolean; error?: string }> =>
+      ipcRenderer.invoke(IPC_CHANNELS.MODS_MANAGER.APPLY_MOD_PRESET, path, installationId, preset),
+    deleteModPreset: (installationId: string, presetId: string): Promise<boolean> => ipcRenderer.invoke(IPC_CHANNELS.MODS_MANAGER.DELETE_MOD_PRESET, installationId, presetId)
   },
   pathsManager: {
     getCurrentUserDataPath: (): Promise<string> => ipcRenderer.invoke(IPC_CHANNELS.PATHS_MANAGER.GET_CURRENT_USER_DATA_PATH),

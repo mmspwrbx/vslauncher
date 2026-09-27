@@ -47,7 +47,9 @@ const defaultInstallation: InstallationType = {
   lastTimePlayed: -1,
   totalTimePlayed: 0,
   mesaGlThread: false,
-  envVars: ""
+  envVars: "",
+  modPresets: [],
+  activeModPresetId: null
 }
 
 const defaultGameVersion: GameVersionType = {
@@ -56,6 +58,7 @@ const defaultGameVersion: GameVersionType = {
 }
 
 let configPath: string
+let pendingSave: Promise<void> = Promise.resolve()
 
 export async function saveConfig(config: ConfigType): Promise<boolean> {
   try {
@@ -64,7 +67,9 @@ export async function saveConfig(config: ConfigType): Promise<boolean> {
         return key.startsWith("_") ? undefined : value
       })
     )
-    await fse.writeJSON(configPath, cleanedConfig)
+    const write = pendingSave.then(() => fse.writeJSON(configPath, cleanedConfig))
+    pendingSave = write.then(() => undefined, () => undefined)
+    await write
     return true
   } catch (err) {
     logMessage("error", `[back] [config] [config/configManager.ts] [saveConfig] Error saving config at ${configPath}.`)
@@ -118,7 +123,9 @@ function ensureConfigProperties(config: ConfigType): ConfigType {
     lastTimePlayed: installation.lastTimePlayed ?? defaultInstallation.lastTimePlayed,
     totalTimePlayed: installation.totalTimePlayed ?? defaultInstallation.totalTimePlayed,
     mesaGlThread: installation.mesaGlThread ?? defaultInstallation.mesaGlThread,
-    envVars: installation.envVars ?? defaultInstallation.envVars
+    envVars: installation.envVars ?? defaultInstallation.envVars,
+    modPresets: Array.isArray(installation.modPresets) ? installation.modPresets : [],
+    activeModPresetId: installation.activeModPresetId ?? null
   }))
 
   const gameVersions: GameVersionType[] = config.gameVersions.map((gameVersion) => ({

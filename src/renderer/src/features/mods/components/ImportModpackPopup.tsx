@@ -71,6 +71,7 @@ function ImportModpackPopup({
 
   async function handleImport(): Promise<void> {
     if (!manifest) return
+    if (installation._applyingModPreset) return
 
     setImporting(true)
 
@@ -243,7 +244,7 @@ function ImportModpackPopup({
                   className="p-1 px-4 h-8"
                   onClick={handleImport}
                   type="success"
-                  disabled={manifest.mods.length === 0}
+                  disabled={manifest.mods.length === 0 || installation._applyingModPreset}
                 >
                   <PiDownloadDuotone className="text-xl" />
                   <p>{t("features.mods.importModpackButton")}</p>

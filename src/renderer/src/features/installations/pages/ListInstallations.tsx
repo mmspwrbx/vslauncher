@@ -34,7 +34,7 @@ function ListInslallations(): JSX.Element {
     try {
       if (!installationToDelete) return addNotification(t("features.installations.noInstallationSelected"), "error")
 
-      if (installationToDelete._playing || installationToDelete._backuping || installationToDelete._restoringBackup) return addNotification(t("features.installations.cantDeleteWhileinUse"), "error")
+      if (installationToDelete._playing || installationToDelete._backuping || installationToDelete._restoringBackup || installationToDelete._applyingModPreset) return addNotification(t("features.installations.cantDeleteWhileinUse"), "error")
 
       if (deleteData) {
         const wasDeleted = await window.api.pathsManager.deletePath(installationToDelete.path)
@@ -47,6 +47,9 @@ function ListInslallations(): JSX.Element {
       }
 
       configDispatch({ type: CONFIG_ACTIONS.DELETE_INSTALLATION, payload: { id: installationToDelete.id } })
+      for (const preset of installationToDelete.modPresets ?? []) {
+        await window.api.modsManager.deleteModPreset(installationToDelete.id, preset.id).catch(() => false)
+      }
       addNotification(t("features.installations.installationSuccessfullyDeleted"), "success")
     } catch (err) {
       addNotification(t("features.installations.errorDeletingInstallation"), "error")
