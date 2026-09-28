@@ -19,14 +19,14 @@ function PopupDialogPanel({
   return (
     <AnimatePresence>
       {isOpen && (
-        <Dialog static open={isOpen} onClose={close} className="w-full h-full absolute top-0 left-0 z-200 flex justify-center items-center select-none bg-zinc">
+        <Dialog static open={isOpen} onClose={close} className="w-full h-full absolute top-0 left-0 z-200 flex justify-center items-center select-none bg-transparent">
           <motion.div
             variants={POPUP_WRAPPER_VARIANTS}
             initial="initial"
             animate="animate"
             exit="exit"
             className={clsx(
-              "relative w-full h-full flex flex-col justify-center items-center rounded-md bg-image-vs bg-center bg-cover",
+              "relative w-full h-full flex flex-col justify-center items-center rounded-md",
               "before:absolute before:left-0 before:top-0 before:w-full before:h-full before:backdrop-blur-[2px] before:bg-zinc-950/15"
             )}
           >

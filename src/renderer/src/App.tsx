@@ -4,7 +4,6 @@ import { FiLoader } from "react-icons/fi"
 import { useTranslation } from "react-i18next"
 import { AnimatePresence, motion } from "motion/react"
 import "./i18n"
-import clsx from "clsx"
 
 import { ConfigProvider } from "@renderer/features/config/contexts/ConfigContext"
 import { NotificationsProvider } from "@renderer/contexts/NotificationsContext"
@@ -34,13 +33,30 @@ import ListMods from "@renderer/features/mods/pages/ListMods"
 import ConfigPage from "@renderer/features/config/pages/ConfigPage"
 
 import InfoAndHelpPage from "./features/info/pages/InfoAndHelpPage"
+import backgroundOne from "./assets/backgrounds/001.webp"
+import backgroundTwo from "./assets/backgrounds/002.webp"
+import backgroundThree from "./assets/backgrounds/003.webp"
+import backgroundFour from "./assets/backgrounds/004.webp"
+
+const backgrounds = [backgroundOne, backgroundTwo, backgroundThree, backgroundFour]
+const BACKGROUND_CHANGE_INTERVAL = 2 * 60 * 1000
 
 function App(): JSX.Element {
+  const [backgroundIndex, setBackgroundIndex] = useState(() => Math.floor(Math.random() * backgrounds.length))
+
   useEffect(() => {
     document.documentElement.setAttribute("data-uiscale", window.localStorage.getItem("uiScale") || "100")
 
     const lang = window.localStorage.getItem("lang")
     if (lang) i18n.changeLanguage(lang)
+  }, [])
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setBackgroundIndex((current) => (current + 1 + Math.floor(Math.random() * (backgrounds.length - 1))) % backgrounds.length)
+    }, BACKGROUND_CHANGE_INTERVAL)
+
+    return (): void => window.clearInterval(interval)
   }, [])
 
   return (
@@ -49,13 +65,17 @@ function App(): JSX.Element {
         <TaskProvider>
           <Router>
             <GlobalActionsWrapper>
-              <div
-                className={clsx(
-                  "relative w-screen h-screen select-none bg-image-vs bg-center bg-cover",
-                  "before:absolute before:left-0 before:top-0 before:w-full before:h-full before:backdrop-blur-[2px]"
-                )}
-              >
-                <div className="w-full h-full flex bg-zinc-950/15">
+              <div className="relative w-screen h-screen select-none overflow-hidden">
+                <div aria-hidden="true" className="launcher-background absolute inset-0 pointer-events-none">
+                  {backgrounds.map((background, index) => (
+                    <div
+                      key={background}
+                      className={`launcher-background-image absolute inset-0 ${index === backgroundIndex ? "is-active" : ""}`}
+                      style={{ backgroundImage: `url("${background}")` }}
+                    />
+                  ))}
+                </div>
+                <div className="relative w-full h-full flex bg-zinc-950/15">
                   <Loader />
 
                   <MainMenu />
@@ -124,12 +144,7 @@ function Loader(): JSX.Element {
   return (
     <AnimatePresence>
       {!minTimeElapsed && (
-        <motion.div
-          initial={{ opacity: 1 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-image-vs bg-center bg-cover z-1000"
-        >
+        <motion.div initial={{ opacity: 1 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute top-0 left-0 w-full h-full flex items-center justify-center z-1000">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: { delay: 0.5 } }}

@@ -103,6 +103,8 @@ declare global {
     source: "local" | "catalog"
     fileName?: string
     url?: string
+    description?: string
+    logo?: string
   }
 
   type ModPresetType = {
@@ -161,8 +163,8 @@ declare global {
     fileid: number
     mainfile: string
     filename: string
-    thumbnailfile: string
-    createdat: string
+    thumbnailfilename: string
+    created: string
   }
 
   type DownloadableModReleaseType = {

@@ -2,17 +2,41 @@ import { useEffect, useRef, useState } from "react"
 import { useParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { FiLoader } from "react-icons/fi"
-import { PiCheckDuotone, PiPlusDuotone, PiTrashDuotone, PiXCircleDuotone } from "react-icons/pi"
+import { PiCheckDuotone, PiPlusDuotone, PiPuzzlePieceDuotone, PiTrashDuotone, PiXCircleDuotone } from "react-icons/pi"
 import { v4 as uuidv4 } from "uuid"
 import { CONFIG_ACTIONS, useConfigContext } from "@renderer/features/config/contexts/ConfigContext"
 import { useNotificationsContext } from "@renderer/contexts/NotificationsContext"
 import { useQueryMods } from "@renderer/features/mods/hooks/useQueryMods"
 import { useQueryMod } from "@renderer/features/mods/hooks/useQueryMod"
+import { modDescriptionText } from "@renderer/features/mods/utils/modDescription"
 import { FormButton, FormInputText } from "@renderer/components/ui/FormComponents"
 import { ListGroup, ListItem, ListWrapper } from "@renderer/components/ui/List"
 import PopupDialogPanel from "@renderer/components/ui/PopupDialogPanel"
 import ScrollableContainer from "@renderer/components/ui/ScrollableContainer"
 import { StickyMenuBreadcrumbs, StickyMenuGroup, StickyMenuGroupWrapper, StickyMenuWrapper, GoBackButton, GoToTopButton } from "@renderer/components/ui/StickyMenu"
+
+type ModPreviewDetails = { description?: string; logo?: string }
+
+function ModPreview({ name, version, description, logo, source }: ModPreviewDetails & { name: string; version?: string; source?: string }): JSX.Element {
+  const { t } = useTranslation()
+
+  return (
+    <div className="min-w-0 grow flex items-center gap-3">
+      <div className="relative shrink-0 w-16 h-16 rounded-sm bg-zinc-900/70 flex items-center justify-center text-3xl text-zinc-500 overflow-hidden">
+        <PiPuzzlePieceDuotone />
+        {logo && <img src={logo} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" onError={(event) => (event.currentTarget.style.display = "none")} />}
+      </div>
+      <div className="min-w-0 grow flex flex-col gap-1">
+        <div className="flex flex-wrap items-baseline gap-x-2">
+          <span className="font-semibold truncate">{name}</span>
+          {version && <span className="shrink-0 text-sm text-zinc-400">v{version}</span>}
+          {source && <span className="text-xs text-zinc-500">{source}</span>}
+        </div>
+        <p className="text-sm text-zinc-400 line-clamp-2">{description || t("features.mods.noDescription")}</p>
+      </div>
+    </div>
+  )
+}
 
 export default function ModPresets(): JSX.Element {
   const { t } = useTranslation()
@@ -35,6 +59,8 @@ export default function ModPresets(): JSX.Element {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [busy, setBusy] = useState(false)
   const [searching, setSearching] = useState(false)
+  const [catalogDetails, setCatalogDetails] = useState<Record<string, ModPreviewDetails>>({})
+  const catalogDetailsCache = useRef<Record<string, ModPreviewDetails>>({})
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const queryMods = useQueryMods()
   const queryMod = useQueryMod()
@@ -83,6 +109,31 @@ export default function ModPresets(): JSX.Element {
       clearTimeout(timer)
     }
   }, [search, selectedId])
+
+  useEffect(() => {
+    let active = true
+    const ids = [...new Set((selected?.mods ?? []).filter((mod) => mod.source === "catalog" && (!mod.description || !mod.logo)).map((mod) => mod.modid))].filter(
+      (modid) => !(modid in catalogDetailsCache.current)
+    )
+
+    ;(async (): Promise<void> => {
+      for (let offset = 0; offset < ids.length; offset += 4) {
+        const details = await Promise.all(
+          ids.slice(offset, offset + 4).map(async (modid): Promise<[string, ModPreviewDetails]> => {
+            const mod = await queryMod({ modid })
+            return [modid, mod ? { description: modDescriptionText(mod.text), logo: mod.logofile ?? undefined } : {}]
+          })
+        )
+        if (!active) return
+        Object.assign(catalogDetailsCache.current, Object.fromEntries(details))
+        setCatalogDetails({ ...catalogDetailsCache.current })
+      }
+    })()
+
+    return (): void => {
+      active = false
+    }
+  }, [selected?.mods])
 
   function savePresets(next: ModPresetType[], activeModPresetId = installation?.activeModPresetId ?? null): void {
     if (!installation) return
@@ -146,7 +197,9 @@ export default function ModPresets(): JSX.Element {
       modid: release.modidstr,
       version: release.modversion,
       source: "catalog",
-      url: url.toString()
+      url: url.toString(),
+      description: modDescriptionText(releaseMod.text),
+      logo: releaseMod.logofile ?? undefined
     }
     updateSelected({ mods: [...selected.mods, entry] })
     setReleaseMod(null)
@@ -221,8 +274,8 @@ export default function ModPresets(): JSX.Element {
         {!installation ? (
           <p>{t("features.installations.noInstallationFound")}</p>
         ) : (
-          <div className="max-w-[50rem] w-full flex flex-col gap-2 m-auto">
-            <ListWrapper>
+          <div className="max-w-[65rem] w-full flex flex-col gap-2 m-auto">
+            <ListWrapper className="w-full">
               <ListGroup>
                 <div className="flex flex-wrap gap-2 items-center justify-center p-2">
                   <FormInputText value={name} onChange={(event) => setName(event.target.value)} placeholder={t("features.mods.presets.name")} maxLength={80} className="w-48" />
@@ -255,7 +308,7 @@ export default function ModPresets(): JSX.Element {
 
             {selected && (
               <>
-                <ListWrapper>
+                <ListWrapper className="w-full">
                   <ListGroup>
                     <div className="flex flex-wrap gap-2 items-center justify-center p-2">
                       <FormInputText
@@ -275,30 +328,37 @@ export default function ModPresets(): JSX.Element {
                         {t("generic.delete")}
                       </FormButton>
                     </div>
-                    {selected.mods.map((mod) => (
-                      <ListItem key={mod.id}>
-                        <div className="flex items-center justify-between gap-2 p-2">
-                          <span className="truncate">
-                            {mod.name} {mod.version && `v${mod.version}`}
-                          </span>
-                          <span className="text-sm text-zinc-400">{t(`features.mods.presets.${mod.source}`)}</span>
-                          <FormButton
-                            title={t("generic.delete")}
-                            onClick={() => updateSelected({ mods: selected.mods.filter((entry) => entry.id !== mod.id) })}
-                            disabled={busy}
-                            className="p-1"
-                            type="error"
-                          >
-                            <PiTrashDuotone />
-                          </FormButton>
-                        </div>
-                      </ListItem>
-                    ))}
+                    {selected.mods.map((mod) => {
+                      const local = installed.find((item) => item.modid === mod.modid)
+                      const details = catalogDetails[mod.modid]
+                      return (
+                        <ListItem key={mod.id}>
+                          <div className="min-h-24 flex items-center gap-3 p-3">
+                            <ModPreview
+                              name={mod.name}
+                              version={mod.version}
+                              source={t(`features.mods.presets.${mod.source}`)}
+                              description={mod.description || local?.description || details?.description}
+                              logo={mod.logo || (local?._image ? `cachemodimg:${local._image}` : undefined) || details?.logo}
+                            />
+                            <FormButton
+                              title={t("generic.delete")}
+                              onClick={() => updateSelected({ mods: selected.mods.filter((entry) => entry.id !== mod.id) })}
+                              disabled={busy}
+                              className="shrink-0 p-2 text-lg"
+                              type="error"
+                            >
+                              <PiTrashDuotone />
+                            </FormButton>
+                          </div>
+                        </ListItem>
+                      )
+                    })}
                     {selected.mods.length === 0 && <p className="text-center p-2 text-zinc-400">{t("features.mods.presets.empty")}</p>}
                   </ListGroup>
                 </ListWrapper>
 
-                <ListWrapper>
+                <ListWrapper className="w-full">
                   <ListGroup>
                     <h2 className="text-center font-bold p-2">{t("features.mods.presets.addInstalled")}</h2>
                     {loadingInstalled && <FiLoader className="animate-spin mx-auto" />}
@@ -306,11 +366,9 @@ export default function ModPresets(): JSX.Element {
                       .filter((mod) => !selected.mods.some((entry) => entry.modid === mod.modid))
                       .map((mod) => (
                         <ListItem key={mod.path}>
-                          <div className="flex justify-between items-center gap-2 p-2">
-                            <span className="truncate">
-                              {mod.name} {mod.version && `v${mod.version}`}
-                            </span>
-                            <FormButton title={t("generic.add")} onClick={() => addLocal(mod)} disabled={busy} className="p-1">
+                          <div className="min-h-24 flex items-center gap-3 p-3">
+                            <ModPreview name={mod.name} version={mod.version} description={mod.description} logo={mod._image ? `cachemodimg:${mod._image}` : undefined} />
+                            <FormButton title={t("generic.add")} onClick={() => addLocal(mod)} disabled={busy} className="shrink-0 p-2 text-lg">
                               <PiPlusDuotone />
                             </FormButton>
                           </div>
@@ -319,7 +377,7 @@ export default function ModPresets(): JSX.Element {
                   </ListGroup>
                 </ListWrapper>
 
-                <ListWrapper>
+                <ListWrapper className="w-full">
                   <ListGroup>
                     <h2 className="text-center font-bold p-2">{t("features.mods.presets.addCatalog")}</h2>
                     <FormInputText value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("features.mods.presets.search")} className="w-full" />
@@ -329,8 +387,8 @@ export default function ModPresets(): JSX.Element {
                       .slice(0, visibleResults)
                       .map((mod) => (
                         <ListItem key={mod.modid}>
-                          <div className="flex justify-between items-center gap-2 p-2">
-                            <span className="truncate">{mod.name}</span>
+                          <div className="min-h-24 flex items-center gap-3 p-3">
+                            <ModPreview name={mod.name} description={mod.summary ?? undefined} logo={mod.logo} />
                             <FormButton
                               title={t("generic.add")}
                               onClick={async () => {
@@ -339,7 +397,7 @@ export default function ModPresets(): JSX.Element {
                                 else addNotification(t("features.mods.presets.error"), "error")
                               }}
                               disabled={busy}
-                              className="p-1"
+                              className="shrink-0 p-2 text-lg"
                             >
                               <PiPlusDuotone />
                             </FormButton>

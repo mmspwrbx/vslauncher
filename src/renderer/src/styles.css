@@ -8,8 +8,43 @@
   --color-vsd: #4f3110;
   --color-zinc-750: #313136;
   --color-zinc-850: #212122;
+}
 
-  --background-image-image-vs: url("./assets/background.jpg");
+.launcher-background {
+  filter: blur(2px);
+  will-change: transform;
+  animation: launcher-pan 60s ease-in-out infinite alternate;
+}
+
+.launcher-background-image {
+  background-position: center;
+  background-size: cover;
+  opacity: 0;
+  transition: opacity 2.5s ease-in-out;
+}
+
+.launcher-background-image.is-active {
+  opacity: 1;
+}
+
+@keyframes launcher-pan {
+  from {
+    transform: scale(1.08) translate3d(-1.5%, -1%, 0);
+  }
+  to {
+    transform: scale(1.08) translate3d(1.5%, 1%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .launcher-background {
+    animation: none;
+    transform: scale(1.08);
+  }
+
+  .launcher-background-image {
+    transition: none;
+  }
 }
 
 @layer utilities {

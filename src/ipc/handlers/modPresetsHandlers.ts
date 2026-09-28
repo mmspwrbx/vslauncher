@@ -34,7 +34,16 @@ ipcMain.handle(IPC_CHANNELS.MODS_MANAGER.SNAPSHOT_PRESET_MODS, async (_event, pa
     if (dirname(source) !== modsPath || !source.toLowerCase().endsWith(".zip")) throw new Error("Invalid mod path")
     const fileName = `${uuidv4()}.zip`
     await fse.copyFile(source, join(destination, fileName))
-    entries.push({ id: uuidv4(), name: mod.name, modid: mod.modid, version: mod.version, source: "local", fileName })
+    entries.push({
+      id: uuidv4(),
+      name: mod.name,
+      modid: mod.modid,
+      version: mod.version,
+      source: "local",
+      fileName,
+      description: mod.description,
+      logo: mod._image ? `cachemodimg:${mod._image}` : undefined
+    })
   }
   return entries
 })

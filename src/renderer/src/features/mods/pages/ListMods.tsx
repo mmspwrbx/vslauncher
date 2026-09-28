@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { PiDownloadDuotone, PiStarDuotone, PiChatCenteredTextDuotone, PiEraserDuotone, PiUserCircleDuotone } from "react-icons/pi"
+import { PiDownloadDuotone, PiStarDuotone, PiChatCenteredTextDuotone, PiEraserDuotone, PiUserCircleDuotone, PiPlusDuotone } from "react-icons/pi"
 import { FiExternalLink, FiLoader } from "react-icons/fi"
 import clsx from "clsx"
 
@@ -14,6 +14,7 @@ import { FormButton, FormInputText } from "@renderer/components/ui/FormComponent
 import ScrollableContainer from "@renderer/components/ui/ScrollableContainer"
 import { GridGroup, GridItem, GridWrapper } from "@renderer/components/ui/Grid"
 import InstallModPopup from "@renderer/features/mods/components/InstallModPopup"
+import CatalogModPopup from "@renderer/features/mods/components/CatalogModPopup"
 import { StickyMenuWrapper, StickyMenuGroupWrapper, StickyMenuGroup, StickyMenuBreadcrumbs, GoBackButton, ReloadButton, GoToTopButton } from "@renderer/components/ui/StickyMenu"
 import { ThinSeparator } from "@renderer/components/ui/ListSeparators"
 import AuthorFilter from "@renderer/features/mods/components/AuthorFilter"
@@ -53,6 +54,8 @@ function ListMods(): JSX.Element {
   const [searching, setSearching] = useState<boolean>(true)
 
   const [modToInstall, setModToInstall] = useState<DownloadableModOnListType | null>(null)
+  const [catalogMod, setCatalogMod] = useState<DownloadableModOnListType | null>(null)
+  const [catalogMode, setCatalogMode] = useState<"details" | "preset">("details")
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
@@ -221,8 +224,8 @@ function ListMods(): JSX.Element {
                 <GridItem
                   key={mod.modid}
                   onClick={() => {
-                    if (!installation) return addNotification(t("features.installations.noInstallationSelected"), "error")
-                    setModToInstall(mod)
+                    setCatalogMode("details")
+                    setCatalogMod(mod)
                   }}
                   selected={installationInstalledMods?.some((iMod) => mod.modidstrs.some((modidstr) => modidstr === iMod.modid.toLocaleLowerCase() || modidstr === iMod.modid))}
                   size="w-[18rem] max-w-[26rem]"
@@ -292,11 +295,56 @@ function ListMods(): JSX.Element {
                       </p>
                     </div>
                   </div>
+                  <div className="flex gap-2 p-2 pt-0">
+                    <FormButton
+                      title={t("features.mods.downloadMod")}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (!installation) return addNotification(t("features.installations.noInstallationSelected"), "error")
+                        setModToInstall(mod)
+                      }}
+                      className="grow p-1 text-sm"
+                      type="success"
+                    >
+                      <PiDownloadDuotone />
+                      {t("features.mods.downloadMod")}
+                    </FormButton>
+                    <FormButton
+                      title={t("features.mods.addToPreset")}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (!installation) return addNotification(t("features.installations.noInstallationSelected"), "error")
+                        setCatalogMode("preset")
+                        setCatalogMod(mod)
+                      }}
+                      className="grow p-1 text-sm"
+                    >
+                      <PiPlusDuotone />
+                      {t("features.mods.addToPreset")}
+                    </FormButton>
+                  </div>
                 </GridItem>
               ))
             )}
           </GridGroup>
         </GridWrapper>
+
+        <CatalogModPopup
+          mod={catalogMod}
+          mode={catalogMode}
+          installation={installation}
+          close={() => setCatalogMod(null)}
+          showDetails={() => setCatalogMode("details")}
+          showPreset={() => {
+            if (!installation) return addNotification(t("features.installations.noInstallationSelected"), "error")
+            setCatalogMode("preset")
+          }}
+          download={() => {
+            if (!installation) return addNotification(t("features.installations.noInstallationSelected"), "error")
+            setModToInstall(catalogMod)
+            setCatalogMod(null)
+          }}
+        />
 
         <InstallModPopup
           modToInstall={modToInstall?.modid || null}
