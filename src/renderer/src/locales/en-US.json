@@ -106,6 +106,8 @@
       "labelStables": "Stables",
       "labelRCs": "Release Candidates",
       "labelPreReleases": "Pre Releases",
+      "loadVersionsError": "Could not load Vintage Story versions. Check your connection and try again.",
+      "noDownloadableVersions": "No downloadable versions are available right now.",
       "searchForAGameVersion": "Add an already installed VS Version",
       "missingFolderOrVersion": "You've no folder selected or there is no VS Version installed on the one you've selected!",
       "versionFound": "VS Version found",

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Input } from "@headlessui/react"
 import { useNavigate } from "react-router-dom"
-import axios from "axios"
 import { FiLoader } from "react-icons/fi"
 import { PiDownloadDuotone, PiMagnifyingGlassDuotone, PiXCircleDuotone } from "react-icons/pi"
 
@@ -60,6 +59,8 @@ function AddVersion(): JSX.Element {
   const navigate = useNavigate()
 
   const [gameVersions, setGameVersions] = useState<DownloadableGameVersionTypeType[]>([])
+  const [versionsStatus, setVersionsStatus] = useState<"loading" | "ready" | "empty" | "error">("loading")
+  const [reloadKey, setReloadKey] = useState(0)
   const [version, setVersion] = useState<DownloadableGameVersionTypeType | undefined>()
   const [folder, setFolder] = useState<string>("")
   const [folderByUser, setFolderByUser] = useState<boolean>(false)
@@ -68,16 +69,42 @@ function AddVersion(): JSX.Element {
   const scrollRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
+    let active = true
+
+    setVersionsStatus("loading")
     ;(async (): Promise<void> => {
       try {
-        const [stable, unstable] = await Promise.all([axios<RawVersions>(`${VS_API}/stable.json`), axios<RawVersions>(`${VS_API}/unstable.json`)])
-        setGameVersions(parseGameVersions(stable.data, unstable.data))
+        const [stable, unstable] = await Promise.allSettled([
+          window.api.netManager.queryURL(`${VS_API}/stable.json`).then((data) => JSON.parse(data) as RawVersions),
+          window.api.netManager.queryURL(`${VS_API}/unstable.json`).then((data) => JSON.parse(data) as RawVersions)
+        ])
+        if (!active) return
+
+        if (stable.status === "rejected" && unstable.status === "rejected") {
+          throw new Error(`Stable: ${stable.reason}; unstable: ${unstable.reason}`)
+        }
+
+        if (stable.status === "rejected" || unstable.status === "rejected") {
+          const reason = stable.status === "rejected" ? stable.reason : unstable.status === "rejected" ? unstable.reason : ""
+          window.api.utils.logMessage("debug", `[front] [features/versions/pages/AddVersion.tsx] One version feed failed: ${reason}`)
+        }
+
+        const versions = parseGameVersions(stable.status === "fulfilled" ? stable.value : {}, unstable.status === "fulfilled" ? unstable.value : {})
+        setGameVersions(versions)
+        setVersionsStatus(versions.length > 0 ? "ready" : "empty")
       } catch (err) {
-        window.api.utils.logMessage("error", `[front] [mods] [features/versions/pages/AddVersion.tsx] [AddVersion] Error fetching game versions.`)
-        window.api.utils.logMessage("debug", `[front] [mods] [features/versions/pages/AddVersion.tsx] [AddVersion] Error fetching game versions: ${err}`)
+        if (!active) return
+        setGameVersions([])
+        setVersionsStatus("error")
+        window.api.utils.logMessage("error", `[front] [features/versions/pages/AddVersion.tsx] Error fetching game versions.`)
+        window.api.utils.logMessage("debug", `[front] [features/versions/pages/AddVersion.tsx] Error fetching game versions: ${err}`)
       }
     })()
-  }, [])
+
+    return (): void => {
+      active = false
+    }
+  }, [reloadKey])
 
   useEffect(() => {
     ;(async (): Promise<void> => {
@@ -215,9 +242,16 @@ function AddVersion(): JSX.Element {
                     </TableHeadRow>
                   </TableHead>
 
-                  {gameVersions.length === 0 ? (
+                  {versionsStatus === "loading" ? (
                     <div className="flex items-center justify-center py-10">
                       <FiLoader className="animate-spin text-3xl text-zinc-400" />
+                    </div>
+                  ) : versionsStatus === "error" || versionsStatus === "empty" ? (
+                    <div className="flex flex-col items-center gap-3 py-8 text-center text-sm text-zinc-300">
+                      <p>{t(versionsStatus === "error" ? "features.versions.loadVersionsError" : "features.versions.noDownloadableVersions")}</p>
+                      <FormButton onClick={() => setReloadKey((key) => key + 1)} title={t("generic.reload")} className="px-3 py-1">
+                        {t("generic.reload")}
+                      </FormButton>
                     </div>
                   ) : (
                     <TableBody className="max-h-[14rem]">

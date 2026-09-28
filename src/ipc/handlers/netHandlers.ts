@@ -6,6 +6,17 @@ ipcMain.handle(IPC_CHANNELS.NET_MANAGER.QUERY_URL, async (_event, url): Promise<
   return new Promise((resolve, reject) => {
     try {
       const request = net.request(url)
+      const timeout = setTimeout(() => {
+        request.abort()
+        reject(new Error(`Request timed out: ${url}`))
+      }, 15_000)
+
+      const fail = (err: Error): void => {
+        clearTimeout(timeout)
+        logMessage("error", `[back] [ipc] [ipc/handlers/netHandlers.ts] [QUERY_URL] Error with the ${url} query.`)
+        logMessage("debug", `[back] [ipc] [ipc/handlers/netHandlers.ts] [QUERY_URL] Error with the ${url} query: ${err}`)
+        reject(err)
+      }
 
       let data = ""
 
@@ -14,15 +25,13 @@ ipcMain.handle(IPC_CHANNELS.NET_MANAGER.QUERY_URL, async (_event, url): Promise<
           data += chunk
         })
         response.on("end", () => {
+          clearTimeout(timeout)
           resolve(data)
         })
+        response.on("error", fail)
       })
 
-      request.on("error", (err) => {
-        logMessage("error", `[back] [ipc] [ipc/handlers/netHandlers.ts] [QUERY_URL] Error with the ${url} query.`)
-        logMessage("debug", `[back] [ipc] [ipc/handlers/netHandlers.ts] [QUERY_URL] Error with the ${url} query: ${err}`)
-        reject(err)
-      })
+      request.on("error", fail)
 
       request.end()
     } catch (err) {

@@ -104,6 +104,8 @@
       "labelStables": "Стабильные",
       "labelRCs": "Кандидаты в релизы",
       "labelPreReleases": "Предварительные релизы",
+      "loadVersionsError": "Не удалось загрузить версии Vintage Story. Проверьте подключение и попробуйте снова.",
+      "noDownloadableVersions": "Сейчас нет доступных для загрузки версий.",
       "searchForAGameVersion": "Добавить уже установленную версию VS",
       "missingFolderOrVersion": "Вы не выбрали папку или в выбранной папке не установлена версия VS!",
       "versionFound": "Версия VS найдена",
