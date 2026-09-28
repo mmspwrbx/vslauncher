@@ -75,7 +75,13 @@
       "notImplementedDesc": "Зайдите в следующей версии, возможно, она будет готова!"
     },
     "home": {
-      "title": "Добро пожаловать в EchoesLauncher"
+      "title": "Добро пожаловать в EchoesLauncher",
+      "latestReleaseVideo": "Видео о последнем релизе Vintage Story",
+      "openOnYouTube": "Открыть на YouTube",
+      "latestNews": "Последние новости",
+      "newsUnavailable": "Новости сейчас недоступны",
+      "openNewsSite": "Открыть официальный блог",
+      "openFullArticle": "Открыть на официальном сайте"
     },
     "versions": {
       "uninstallVersion": "Удалить версию VS",

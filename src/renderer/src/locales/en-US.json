@@ -77,7 +77,13 @@
       "notImplementedDesc": "Come back on the next version and it may be ready!"
     },
     "home": {
-      "title": "Welcome to EchoesLauncher"
+      "title": "Welcome to EchoesLauncher",
+      "latestReleaseVideo": "Latest Vintage Story release video",
+      "openOnYouTube": "Open on YouTube",
+      "latestNews": "Latest news",
+      "newsUnavailable": "News is unavailable right now",
+      "openNewsSite": "Open official news",
+      "openFullArticle": "Open on official site"
     },
     "versions": {
       "uninstallVersion": "Uninstall VS Version",
